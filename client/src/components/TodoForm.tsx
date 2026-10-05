@@ -8,16 +8,20 @@ export default function TodoForm({
   onAdd: (e: React.FormEvent) => void
 }) {
   return (
-    <form onSubmit={onAdd} className="flex border-b border-zinc-200">
+    <form onSubmit={onAdd} className="flex gap-2">
       <input
         value={title}
         onChange={(e) => onTitle(e.target.value)}
-        placeholder="Add a todo"
+        placeholder="Add a task"
         maxLength={200}
         autoFocus
-        className="flex-1 bg-transparent py-3 text-sm outline-none placeholder:text-zinc-400"
+        className="min-w-0 flex-1 rounded-xl border border-[var(--line)] bg-[var(--card)] px-3.5 py-2.5 text-sm outline-none transition placeholder:text-[#a79b84] focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/10"
       />
-      <button className="px-1 text-sm font-medium hover:underline focus-visible:underline">
+      <button
+        type="submit"
+        disabled={!title.trim()}
+        className="rounded-xl bg-[var(--accent)] cursor-pointer px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[var(--accent-deep)] disabled:cursor-not-allowed disabled:bg-[var(--paper-soft)] disabled:text-[var(--ink-soft)]"
+      >
         Add
       </button>
     </form>

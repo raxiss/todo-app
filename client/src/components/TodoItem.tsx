@@ -1,5 +1,11 @@
 import type { Todo } from '../api.ts'
 
+function formatDate(iso: string) {
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return ''
+  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+}
+
 export default function TodoItem({
   todo,
   onToggle,
@@ -10,20 +16,23 @@ export default function TodoItem({
   onRemove: () => void
 }) {
   return (
-    <li className="group flex items-center gap-3 border-b border-zinc-200 py-2.5">
+    <li className="flex items-start gap-3 px-4 py-3.5 sm:px-5">
       <input
         type="checkbox"
         checked={todo.completed}
         onChange={onToggle}
-        className="h-4 w-4 accent-zinc-900"
+        className="mt-1 h-4 w-4 cursor-pointer accent-[var(--accent)]"
       />
-      <span className={`flex-1 text-sm ${todo.completed ? 'text-zinc-400 line-through' : ''}`}>
-        {todo.title}
-      </span>
+      <div className="min-w-0 flex-1">
+        <p className={todo.completed ? 'text-[var(--ink-soft)] line-through decoration-[var(--accent)]/50' : ''}>{todo.title}</p>
+        {todo.created_at && (
+          <p className="mt-0.5 text-xs text-[var(--ink-soft)]">{formatDate(todo.created_at)}</p>
+        )}
+      </div>
       <button
         onClick={onRemove}
+        className="rounded px-1.5 py-0.5 text-sm cursor-pointer text-[var(--ink-soft)] transition-colors hover:bg-[var(--paper)] hover:text-[var(--accent-deep)]"
         aria-label={`Delete ${todo.title}`}
-        className="text-sm text-zinc-400 hover:text-red-600 focus-visible:text-red-600 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100"
       >
         Delete
       </button>

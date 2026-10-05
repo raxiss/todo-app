@@ -20,8 +20,9 @@ async function req<T>(path: string, init?: RequestInit): Promise<T> {
   return res.json()
 }
 
-export async function fetchTodos(): Promise<Todo[]> {
-  const data = await req<{ todos: Todo[] }>('/api/todos')
+export async function fetchTodos(query?: string): Promise<Todo[]> {
+  const q = query?.trim() ? `?q=${encodeURIComponent(query.trim())}` : ''
+  const data = await req<{ todos: Todo[] }>(`/api/todos${q}`)
   return data.todos
 }
 

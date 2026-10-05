@@ -1,1 +1,142 @@
 @import "tailwindcss";
+
+:root {
+  --paper: #f4eee1;
+  --paper-soft: #ede5d3;
+  --card: #fffdf6;
+  --line: #e2d7bd;
+  --ink: #211b12;
+  --ink-soft: #7a6f5d;
+  --accent: #bc4a1f;
+  --accent-deep: #9a3a14;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+/* faint notebook dot grid, barely there */
+.dotgrid {
+  background-image: radial-gradient(rgba(33, 27, 18, 0.07) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+
+.paper-shadow {
+  box-shadow:
+    0 1px 2px rgba(33, 27, 18, 0.06),
+    0 8px 24px -12px rgba(33, 27, 18, 0.18);
+}
+
+.paper-shadow-hover {
+  transition:
+    transform 0.25s cubic-bezier(0.22, 0.68, 0.32, 1),
+    box-shadow 0.25s ease,
+    border-color 0.2s ease;
+}
+.paper-shadow-hover:hover {
+  transform: translateY(-1px);
+  box-shadow:
+    0 2px 3px rgba(33, 27, 18, 0.06),
+    0 14px 32px -14px rgba(33, 27, 18, 0.28);
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-rise {
+  animation: rise 0.55s cubic-bezier(0.22, 0.68, 0.32, 1) both;
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.animate-fade {
+  animation: fade 0.35s ease both;
+}
+
+@keyframes pop {
+  0% {
+    transform: scale(0.4);
+  }
+  60% {
+    transform: scale(1.18);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+.animate-pop {
+  animation: pop 0.28s cubic-bezier(0.22, 0.68, 0.32, 1) both;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -400px 0;
+  }
+  100% {
+    background-position: 400px 0;
+  }
+}
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(33, 27, 18, 0.06) 25%,
+    rgba(33, 27, 18, 0.11) 37%,
+    rgba(33, 27, 18, 0.06) 63%
+  );
+  background-size: 800px 100%;
+  animation: shimmer 1.4s ease infinite;
+}
+
+/* thin archive scrollbar */
+.thin-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+.thin-scroll::-webkit-scrollbar-thumb {
+  background: rgba(237, 230, 214, 0.18);
+  border-radius: 99px;
+}
+.thin-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* animated strike for completed titles */
+.strike {
+  background-image: linear-gradient(currentColor, currentColor);
+  background-size: 0% 1.5px;
+  background-repeat: no-repeat;
+  background-position: 0 58%;
+  transition: background-size 0.35s cubic-bezier(0.22, 0.68, 0.32, 1);
+}
+.strike-on {
+  background-size: 100% 1.5px;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #a79b84;
+}

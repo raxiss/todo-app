@@ -55,19 +55,19 @@ export default function Auth({ onDone }: { onDone: (email: string) => void }) {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-zinc-100 via-zinc-50 to-zinc-200 px-4">
-      <main className="w-full max-w-sm rounded-2xl border border-zinc-200 bg-white p-8 shadow-lg">
-        <div className="mb-6 text-center">
-          <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-zinc-900 text-lg font-bold text-white">
-            ✓
-          </div>
-          <h1 className="text-2xl font-bold tracking-tight">Welcome back</h1>
-          <p className="mt-1 text-sm text-zinc-500">
-            {mode === 'login' ? 'Log in to manage your todos' : 'Create an account to get started'}
-          </p>
-        </div>
-        <form onSubmit={submit} className="flex flex-col gap-3">
-          <label className="flex flex-col gap-1 text-sm font-medium">
+    <div className="dotgrid flex min-h-screen items-center justify-center bg-[#f4eee1] px-4 py-10">
+      <main className="animate-rise paper-shadow w-full max-w-[380px] rounded-[24px] border border-[#e2d7bd] bg-[#fffdf6] p-8">
+        <p className="text-center text-[11px] font-semibold uppercase tracking-[0.24em] text-[#a79b84]">
+          vol. 01 — a quiet page
+        </p>
+        <h1 className="mt-2 text-center text-[38px] leading-none tracking-tight">
+          daybook<span className="text-[#bc4a1f]">.</span>
+        </h1>
+        <p className="mt-2 text-center text-[15.5px] italic text-[#7a6f5d]">
+          {mode === 'login' ? 'welcome back — pick up where you left off' : 'a fresh page with your name on it'}
+        </p>
+        <form onSubmit={submit} className="mt-6 flex flex-col gap-3">
+          <label className="flex flex-col gap-1.5 text-[13px] font-medium text-[#211b12]">
             Email
             <input
               type="email"
@@ -75,10 +75,10 @@ export default function Auth({ onDone }: { onDone: (email: string) => void }) {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@example.com"
               autoComplete="email"
-              className="rounded-lg border border-zinc-300 px-3 py-2 text-sm font-normal outline-none focus:border-zinc-900 focus:ring-1 focus:ring-zinc-900"
+              className="rounded-xl border border-[#e2d7bd] bg-[#f4eee1]/50 px-3.5 py-2.5 text-sm font-normal outline-none transition placeholder:text-[#b3a687] focus:border-[#211b12]/50 focus:bg-white"
             />
           </label>
-          <label className="flex flex-col gap-1 text-sm font-medium">
+          <label className="flex flex-col gap-1.5 text-[13px] font-medium text-[#211b12]">
             Password
             <input
               type="password"
@@ -86,29 +86,31 @@ export default function Auth({ onDone }: { onDone: (email: string) => void }) {
               onChange={(e) => setPass(e.target.value)}
               placeholder="••••••••"
               autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
-              className="rounded-lg border border-zinc-300 px-3 py-2 text-sm font-normal outline-none focus:border-zinc-900 focus:ring-1 focus:ring-zinc-900"
+              className="rounded-xl border border-[#e2d7bd] bg-[#f4eee1]/50 px-3.5 py-2.5 text-sm font-normal outline-none transition placeholder:text-[#b3a687] focus:border-[#211b12]/50 focus:bg-white"
             />
           </label>
           {error && (
-            <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>
+            <p className="animate-fade rounded-xl border border-[#e0a583] bg-[#fbeede] px-3.5 py-2.5 text-[13px] text-[#9a3a14]">
+              {error}
+            </p>
           )}
           <button
             disabled={busy}
-            className="mt-1 rounded-lg bg-zinc-900 py-2.5 text-sm font-medium text-white transition hover:bg-zinc-700 disabled:opacity-50"
+            className="mt-1 rounded-full bg-[#211b12] py-3 text-sm font-semibold text-[#f4eee1] transition hover:bg-[#bc4a1f] active:scale-[0.98] disabled:opacity-50"
           >
-            {busy ? 'Please wait…' : mode === 'login' ? 'Log in' : 'Create account'}
+            {busy ? 'opening…' : mode === 'login' ? 'open my daybook' : 'start my daybook'}
           </button>
         </form>
-        <p className="mt-4 text-center text-sm text-zinc-500">
-          {mode === 'login' ? 'No account? ' : 'Have an account? '}
+        <p className="mt-5 text-center text-[13px] text-[#7a6f5d]">
+          {mode === 'login' ? 'new around here? ' : 'already keeping one? '}
           <button
             onClick={() => {
               setMode(mode === 'login' ? 'signup' : 'login')
               setError(null)
             }}
-            className="font-medium text-zinc-900 underline underline-offset-2"
+            className="italic text-[#211b12] underline decoration-[#bc4a1f]/50 decoration-2 underline-offset-4 transition hover:text-[#bc4a1f]"
           >
-            {mode === 'login' ? 'Sign up' : 'Log in'}
+            {mode === 'login' ? 'start one' : 'open it'}
           </button>
         </p>
       </main>
