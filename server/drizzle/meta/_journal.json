@@ -8,6 +8,13 @@
       "when": 1791095667670,
       "tag": "0000_violet_abomination",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1791184568357,
+      "tag": "0001_cooing_jackpot",
+      "breakpoints": true
     }
   ]
 }

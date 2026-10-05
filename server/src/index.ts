@@ -9,6 +9,11 @@ import { checkDb } from './db/index.js'
 const app = express()
 const PORT = process.env.PORT || 3000
 
+if (!process.env.JWT_SECRET) {
+  console.error('[auth] JWT_SECRET is missing — set it in server/.env')
+  process.exit(1)
+}
+
 app.use(cors({ origin: process.env.CLIENT_URL || 'http://localhost:5173' }))
 app.use(express.json())
 

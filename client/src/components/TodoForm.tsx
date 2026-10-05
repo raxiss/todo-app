@@ -1,3 +1,5 @@
+import type { FormEvent } from 'react'
+
 export default function TodoForm({
   title,
   onTitle,
@@ -5,7 +7,7 @@ export default function TodoForm({
 }: {
   title: string
   onTitle: (v: string) => void
-  onAdd: (e: React.FormEvent) => void
+  onAdd: (e: FormEvent) => void
 }) {
   return (
     <form onSubmit={onAdd} className="flex gap-2">

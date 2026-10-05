@@ -1,12 +1,15 @@
-import { Router } from 'express'
-import { desc, eq, ilike, or } from 'drizzle-orm'
+import { Router, type Response } from 'express'
+import { and, desc, eq, ilike, or } from 'drizzle-orm'
 import { z } from 'zod'
 import { db, isTransientDbError, withDbRetry } from './db/index.js'
 import { todos } from './db/schema.js'
+import { requireAuth } from './middleware.js'
 
 const router = Router()
 
-function dbError(res: import('express').Response, error: unknown) {
+router.use(requireAuth)
+
+function dbError(res: Response, error: unknown) {
   console.error(error)
   if (isTransientDbError(error)) {
     return res.status(503).json({
@@ -30,15 +33,24 @@ const updateTodoSchema = z.object({
 
 router.get('/', async (req, res) => {
   try {
+    const userId = req.user?.id
+    if (userId === undefined) {
+      return res.status(401).json({ status: 'error', message: 'Missing auth token — please log in' })
+    }
     const q = typeof req.query.q === 'string' ? req.query.q.trim().slice(0, 200) : ''
     const allTodos = await withDbRetry(() =>
       q
         ? db
             .select()
             .from(todos)
-            .where(or(ilike(todos.title, `%${q}%`), ilike(todos.description, `%${q}%`)))
+            .where(
+              and(
+                eq(todos.user_id, userId),
+                or(ilike(todos.title, `%${q}%`), ilike(todos.description, `%${q}%`))
+              )
+            )
             .orderBy(desc(todos.id))
-        : db.select().from(todos).orderBy(desc(todos.id))
+        : db.select().from(todos).where(eq(todos.user_id, userId)).orderBy(desc(todos.id))
     )
     res.json({ status: 'ok', todos: allTodos })
   } catch (error) {
@@ -48,11 +60,17 @@ router.get('/', async (req, res) => {
 
 router.get('/:id', async (req, res) => {
   try {
+    const userId = req.user?.id
+    if (userId === undefined) {
+      return res.status(401).json({ status: 'error', message: 'Missing auth token — please log in' })
+    }
     const id = Number(req.params.id)
     if (Number.isNaN(id)) {
       return res.status(400).json({ status: 'error', message: 'Invalid id' })
     }
-    const rows = await withDbRetry(() => db.select().from(todos).where(eq(todos.id, id)))
+    const rows = await withDbRetry(() =>
+      db.select().from(todos).where(and(eq(todos.id, id), eq(todos.user_id, userId)))
+    )
     if (rows.length === 0) {
       return res.status(404).json({ status: 'error', message: 'Todo not found' })
     }
@@ -64,6 +82,10 @@ router.get('/:id', async (req, res) => {
 
 router.post('/', async (req, res) => {
   try {
+    const userId = req.user?.id
+    if (userId === undefined) {
+      return res.status(401).json({ status: 'error', message: 'Missing auth token — please log in' })
+    }
     const parsed = createTodoSchema.safeParse(req.body)
     if (!parsed.success) {
       return res.status(400).json({ status: 'error', message: 'Title and description are required' })
@@ -74,7 +96,8 @@ router.post('/', async (req, res) => {
         .insert(todos)
         .values({
           title,
-          description
+          description,
+          user_id: userId
         })
         .returning()
     )
@@ -89,6 +112,10 @@ router.post('/', async (req, res) => {
 
 router.put('/:id', async (req, res) => {
   try {
+    const userId = req.user?.id
+    if (userId === undefined) {
+      return res.status(401).json({ status: 'error', message: 'Missing auth token — please log in' })
+    }
     const id = Number(req.params.id)
     if (Number.isNaN(id)) {
       return res.status(400).json({ status: 'error', message: 'Invalid id' })
@@ -98,7 +125,9 @@ router.put('/:id', async (req, res) => {
       return res.status(400).json({ status: 'error', message: 'Invalid update data' })
     }
     const { title, description, completed } = parsed.data
-    const existing = await withDbRetry(() => db.select().from(todos).where(eq(todos.id, id)))
+    const existing = await withDbRetry(() =>
+      db.select().from(todos).where(and(eq(todos.id, id), eq(todos.user_id, userId)))
+    )
     if (existing.length === 0) {
       return res.status(404).json({ status: 'error', message: 'Todo not found' })
     }
@@ -110,7 +139,7 @@ router.put('/:id', async (req, res) => {
           ...(description !== undefined ? { description } : {}),
           ...(completed !== undefined ? { completed } : {})
         })
-        .where(eq(todos.id, id))
+        .where(and(eq(todos.id, id), eq(todos.user_id, userId)))
         .returning()
     )
     res.json({
@@ -124,11 +153,17 @@ router.put('/:id', async (req, res) => {
 
 router.delete('/:id', async (req, res) => {
   try {
+    const userId = req.user?.id
+    if (userId === undefined) {
+      return res.status(401).json({ status: 'error', message: 'Missing auth token — please log in' })
+    }
     const id = Number(req.params.id)
     if (Number.isNaN(id)) {
       return res.status(400).json({ status: 'error', message: 'Invalid id' })
     }
-    const rows = await withDbRetry(() => db.delete(todos).where(eq(todos.id, id)).returning())
+    const rows = await withDbRetry(() =>
+      db.delete(todos).where(and(eq(todos.id, id), eq(todos.user_id, userId))).returning()
+    )
     if (rows.length === 0) {
       return res.status(404).json({ status: 'error', message: 'Todo not found' })
     }

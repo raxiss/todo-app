@@ -1,13 +1,16 @@
-import { useEffect, useState } from 'react'
-import { createTodo, deleteTodo, fetchTodos, toggleTodo, type Todo } from './api.ts'
+import { useCallback, useEffect, useState, type FormEvent } from 'react'
+import { ApiError, createTodo, deleteTodo, fetchMe, fetchTodos, toggleTodo, type Todo } from './api.ts'
 import Auth from './Auth.tsx'
 import Sidebar, { type Filter } from './components/Sidebar.tsx'
 import SearchBar from './components/SearchBar.tsx'
+import StatsCards from './components/StatsCards.tsx'
 import TodoForm from './components/TodoForm.tsx'
 import TodoList from './components/TodoList.tsx'
 
 export default function App() {
-  const [user, setUser] = useState<string | null>(() => localStorage.getItem('session'))
+  const [user, setUser] = useState<string | null>(() =>
+    localStorage.getItem('token') ? localStorage.getItem('session') : null
+  )
   const [todos, setTodos] = useState<Todo[]>([])
   const [title, setTitle] = useState('')
   const [query, setQuery] = useState('')
@@ -16,20 +19,39 @@ export default function App() {
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    if (!user) return
-    setLoading(true)
-    fetchTodos()
-      .then((rows) => setTodos(rows.sort((a, b) => b.id - a.id)))
-      .catch(showError)
-      .finally(() => setLoading(false))
-  }, [user])
-
   function showError(e: unknown) {
     setError(e instanceof Error ? e.message : 'Something went wrong')
   }
 
-  async function addTodo(e: React.FormEvent) {
+  const logout = useCallback(() => {
+    localStorage.removeItem('token')
+    localStorage.removeItem('session')
+    setUser(null)
+    setTodos([])
+    setQuery('')
+    setFilter('all')
+  }, [])
+
+  useEffect(() => {
+    if (!user) return
+    setLoading(true)
+    fetchMe()
+      .then((me) => {
+        setUser(me.email)
+        return fetchTodos()
+      })
+      .then((rows) => setTodos(rows.sort((a, b) => b.id - a.id)))
+      .catch((e: unknown) => {
+        if (e instanceof ApiError && e.status === 401) {
+          logout()
+        } else {
+          showError(e)
+        }
+      })
+      .finally(() => setLoading(false))
+  }, [user, logout])
+
+  async function addTodo(e: FormEvent) {
     e.preventDefault()
     const text = title.trim()
     if (!text) return
@@ -71,18 +93,11 @@ export default function App() {
     }
   }
 
-  function logout() {
-    localStorage.removeItem('session')
-    setUser(null)
-    setTodos([])
-    setQuery('')
-    setFilter('all')
-  }
-
   if (!user) return <Auth onDone={setUser} />
 
   const doneCount = todos.filter((t) => t.completed).length
   const counts = { all: todos.length, active: todos.length - doneCount, completed: doneCount }
+  const pct = todos.length === 0 ? 0 : Math.round((doneCount / todos.length) * 100)
 
   const q = query.trim().toLowerCase()
   const visible = todos.filter((t) => {
@@ -117,7 +132,11 @@ export default function App() {
           <h1 className="text-3xl font-semibold leading-tight tracking-tight">{heading}</h1>
         </div>
 
-        <TodoForm title={title} onTitle={setTitle} onAdd={addTodo} />
+        <StatsCards total={todos.length} active={counts.active} done={doneCount} pct={pct} />
+
+        <div className="mt-5">
+          <TodoForm title={title} onTitle={setTitle} onAdd={addTodo} />
+        </div>
 
         {error && (
           <p className="mt-3 rounded-xl border border-[#e0a583] bg-[#fbeede] px-3.5 py-2.5 text-sm text-[var(--accent-deep)]">{error}</p>

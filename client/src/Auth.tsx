@@ -1,28 +1,11 @@
-import { useState } from 'react'
+import { useState, type FormEvent } from 'react'
 import { z } from 'zod'
+import { login, signup } from './api.ts'
 
 const formSchema = z.object({
   email: z.string().email('Enter a valid email'),
   password: z.string().min(4, 'Password must be 4+ characters').max(100)
 })
-
-async function req<T>(path: string, body: unknown): Promise<T> {
-  let res: Response
-  try {
-    res = await fetch(path, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
-    })
-  } catch {
-    throw new Error('Cannot reach server — run `npm run dev`')
-  }
-  const data = await res.json().catch(() => ({}))
-  if (!res.ok || data.status !== 'ok') {
-    throw new Error(data.message || `Request failed: ${res.status}`)
-  }
-  return data
-}
 
 export default function Auth({ onDone }: { onDone: (email: string) => void }) {
   const [email, setEmail] = useState('')
@@ -31,7 +14,7 @@ export default function Auth({ onDone }: { onDone: (email: string) => void }) {
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
 
-  async function submit(e: React.FormEvent) {
+  async function submit(e: FormEvent) {
     e.preventDefault()
     const parsed = formSchema.safeParse({ email, password: pass })
     if (!parsed.success) {
@@ -41,10 +24,10 @@ export default function Auth({ onDone }: { onDone: (email: string) => void }) {
     setError(null)
     setBusy(true)
     try {
-      const data = await req<{ user: { email: string } }>(
-        `/api/auth/${mode}`,
-        parsed.data
-      )
+      const data = mode === 'login'
+        ? await login(parsed.data.email, parsed.data.password)
+        : await signup(parsed.data.email, parsed.data.password)
+      localStorage.setItem('token', data.token)
       localStorage.setItem('session', data.user.email)
       onDone(data.user.email)
     } catch (e) {

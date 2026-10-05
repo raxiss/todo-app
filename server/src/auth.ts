@@ -1,13 +1,14 @@
-import { Router } from 'express'
+import { Router, type Response } from 'express'
 import { eq } from 'drizzle-orm'
 import { z } from 'zod'
 import bcrypt from 'bcryptjs'
 import { db, isTransientDbError, withDbRetry } from './db/index.js'
 import { users } from './db/schema.js'
+import { requireAuth, signToken } from './middleware.js'
 
 const router = Router()
 
-function dbError(res: import('express').Response, error: unknown) {
+function dbError(res: Response, error: unknown) {
   console.error(error)
   if (isTransientDbError(error)) {
     return res.status(503).json({
@@ -41,7 +42,8 @@ router.post('/signup', async (req, res) => {
         email: users.email
       })
     )
-    res.status(201).json({ status: 'ok', user: rows[0] })
+    const user = rows[0]
+    res.status(201).json({ status: 'ok', token: signToken(user), user })
   } catch (error) {
     return dbError(res, error)
   }
@@ -62,10 +64,15 @@ router.post('/login', async (req, res) => {
     if (!ok) {
       return res.status(401).json({ status: 'error', message: 'Wrong email or password' })
     }
-    res.json({ status: 'ok', user: { id: rows[0].id, email: rows[0].email } })
+    const user = { id: rows[0].id, email: rows[0].email }
+    res.json({ status: 'ok', token: signToken(user), user })
   } catch (error) {
     return dbError(res, error)
   }
+})
+
+router.get('/me', requireAuth, (req, res) => {
+  res.json({ status: 'ok', user: req.user })
 })
 
 export default router
